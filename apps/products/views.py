@@ -1,11 +1,11 @@
-from rest_framework import generics
-from .models import Product
+from rest_framework import generics,permissions
+from .models import Product,ProductImage
 from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     ProductCreateSerializer,
+    ProductImageSerializer,
 )
-
 
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductListSerializer
@@ -34,3 +34,23 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductDetailSerializer
+
+
+class ProductImageListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ProductImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = ProductImage.objects.all()
+
+        # فیلتر بر اساس شناسه محصول
+        product_id = self.request.query_params.get('product_id')
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
+
+        # فیلتر بر اساس دسته‌بندی
+        category_id = self.request.query_params.get('category_id')
+        if category_id:
+            queryset = queryset.filter(product__category_id=category_id)
+
+        return queryset

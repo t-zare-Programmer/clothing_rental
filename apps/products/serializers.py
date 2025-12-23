@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product,ProductImage
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -40,3 +40,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "sell_price",
             "deposit_price",
         ]
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'image', 'created_at')
