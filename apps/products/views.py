@@ -1,0 +1,36 @@
+from rest_framework import generics
+from .models import Product
+from .serializers import (
+    ProductListSerializer,
+    ProductDetailSerializer,
+    ProductCreateSerializer,
+)
+
+
+class ProductListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ProductListSerializer
+
+    def get_queryset(self):
+        queryset = Product.objects.filter(is_active=True)
+
+        category_id = self.request.query_params.get("category")
+        product_type = self.request.query_params.get("type")  # rent | sell
+
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+
+        if product_type in ["rent", "sell"]:
+            queryset = queryset.filter(product_type=product_type)
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ProductCreateSerializer
+        return ProductListSerializer
+
+
+
+class ProductDetailAPIView(generics.RetrieveAPIView):
+    queryset = Product.objects.filter(is_active=True)
+    serializer_class = ProductDetailSerializer
