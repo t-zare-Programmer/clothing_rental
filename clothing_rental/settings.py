@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'rest_framework_simplejwt',
     'apps.users.apps.UsersConfig',
     'apps.categories.apps.CategoriesConfig',
@@ -123,6 +124,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 from datetime import timedelta
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -132,6 +135,22 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Clothing Rental API',
+    'DESCRIPTION': 'API documentation for clothing rental & sales platform',
+    'VERSION': '1.0.0',
+
+    'SERVE_INCLUDE_SCHEMA': False,
+
+    'SECURITY': [
+        {
+            'bearerAuth': []
+        }
+    ],
+
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 

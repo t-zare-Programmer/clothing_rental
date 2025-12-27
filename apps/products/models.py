@@ -42,14 +42,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
-
+#_______________________________________________________________________________________
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         related_name="images"
     )
-    image = models.ImageField(upload_to='media/products/images/')
+    image = models.ImageField(upload_to='products/images/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

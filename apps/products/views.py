@@ -6,9 +6,32 @@ from .serializers import (
     ProductCreateSerializer,
     ProductImageSerializer,
 )
+from drf_spectacular.utils import extend_schema, OpenApiExample
+from rest_framework.generics import ListAPIView
 
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductListSerializer
+
+    @extend_schema(
+        tags=["Products"],
+        summary="List of products",
+        description="This endpoint returns a list of all active products.",
+        responses={
+            200: OpenApiExample(
+                "Example Response",
+                value=[
+                    {
+                        "id": 1,
+                        "title": "Sample Product",
+                        "category": 1,
+                        "product_type": "rent",
+                        "rent_price": 100,
+                        "sell_price": 200
+                    }
+                ],
+            ),
+        },
+    )
 
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True)
