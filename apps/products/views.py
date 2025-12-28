@@ -1,37 +1,18 @@
-from rest_framework import generics,permissions
-from .models import Product,ProductImage
+from rest_framework import generics, permissions
+from .models import Product, ProductImage
 from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     ProductCreateSerializer,
     ProductImageSerializer,
 )
-from drf_spectacular.utils import extend_schema, OpenApiExample
-from rest_framework.generics import ListAPIView
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+from .permissions import IsOwnerOrReadOnly
 
+#___________________________________________________________________________________________
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductListSerializer
-
-    @extend_schema(
-        tags=["Products"],
-        summary="List of products",
-        description="This endpoint returns a list of all active products.",
-        responses={
-            200: OpenApiExample(
-                "Example Response",
-                value=[
-                    {
-                        "id": 1,
-                        "title": "Sample Product",
-                        "category": 1,
-                        "product_type": "rent",
-                        "rent_price": 100,
-                        "sell_price": 200
-                    }
-                ],
-            ),
-        },
-    )
 
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True)
@@ -52,13 +33,47 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
             return ProductCreateSerializer
         return ProductListSerializer
 
+    def get_permissions(self):
+        if self.request.method == "POST":
+            # فقط کاربران لاگین شده می‌توانند محصول بسازند
+            return [permissions.IsAuthenticated()]
+        # همه می‌توانند مشاهده کنند
+        return [permissions.AllowAny()]
 
+    def perform_create(self, serializer):
+        # ست کردن Owner خودکار هنگام ساخت محصول
+        serializer.save(owner=self.request.user)
 
-class ProductDetailAPIView(generics.RetrieveAPIView):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="category",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Filter by category id",
+            ),
+            OpenApiParameter(
+                name="type",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Filter by product type (rent | sell)",
+                enum=["rent", "sell"],
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+#___________________________________________________________________________________________
+# مشاهده، بروزرسانی و حذف محصول خاص
+class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductDetailSerializer
+    permission_classes = [IsOwnerOrReadOnly]
 
-
+#___________________________________________________________________________________________
 class ProductImageListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductImageSerializer
     permission_classes = [permissions.IsAuthenticated]

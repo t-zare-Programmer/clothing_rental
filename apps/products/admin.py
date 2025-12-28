@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Product,ProductImage
 
+#___________________________________________________________________________________________
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -22,7 +23,7 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     search_fields = ("title",)
-
+#___________________________________________________________________________________________
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display =("product", "image")

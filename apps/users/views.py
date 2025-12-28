@@ -8,7 +8,7 @@ from django.utils import timezone
 from .models import OTP, User
 from .serializers import SendOTPSerializer, VerifyOTPSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-
+#___________________________________________________________________________________________
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -57,7 +57,7 @@ class SendOTPView(APIView):
             {"detail": "OTP sent successfully"},
             status=status.HTTP_200_OK
         )
-#________________________________________________________________________________________
+#___________________________________________________________________________________________
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 

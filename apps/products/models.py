@@ -1,8 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from apps.categories.models import Category
-
-
+from django.conf import settings
+#___________________________________________________________________________________________
 class Product(models.Model):
 
     class ProductType(models.TextChoices):
@@ -30,6 +30,14 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="products",
+        null=False,
+        blank=True
+    )
+
     def clean(self):
         if self.product_type == "rent" and not self.rent_price:
             raise ValidationError("برای محصول اجاره‌ای، قیمت اجاره الزامی است.")
@@ -42,7 +50,7 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
-#_______________________________________________________________________________________
+#___________________________________________________________________________________________
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product,

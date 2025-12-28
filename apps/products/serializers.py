@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Product,ProductImage
 
-
+#___________________________________________________________________________________________
 class ProductListSerializer(serializers.ModelSerializer):
     category_title = serializers.CharField(
         source="category.title", read_only=True
@@ -18,7 +18,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "rent_price",
             "sell_price",
         )
-
+#___________________________________________________________________________________________
 class ProductDetailSerializer(serializers.ModelSerializer):
     category_title = serializers.CharField(
         source="category.title", read_only=True
@@ -27,7 +27,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
-
+#___________________________________________________________________________________________
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -40,7 +40,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "sell_price",
             "deposit_price",
         ]
-
+#___________________________________________________________________________________________
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage

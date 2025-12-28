@@ -6,6 +6,7 @@ from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView
 )
+#___________________________________________________________________________________________
 urlpatterns = [
     path('admin/', admin.site.urls),
 

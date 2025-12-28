@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, OTP
 
-
+#___________________________________________________________________________________________
 class UserAdmin(BaseUserAdmin):
     model = User
     list_display = ('phone_number', 'is_active', 'is_staff', 'created_at')

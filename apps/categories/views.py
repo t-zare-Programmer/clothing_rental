@@ -4,14 +4,14 @@ from rest_framework import status
 from .models import Category
 from .serializers import CategorySerializer
 
-
+#___________________________________________________________________________________________
 class CategoryListView(APIView):
     def get(self, request):
         categories = Category.objects.filter(is_active=True)
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+#___________________________________________________________________________________________
 class CategoryDetailView(APIView):
     def get(self, request, pk):
         try:

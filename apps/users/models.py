@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from .managers import UserManager
 
-
+#___________________________________________________________________________________________
 class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=11, unique=True)
     is_active = models.BooleanField(default=True)
@@ -17,7 +17,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.phone_number
 
-
+#___________________________________________________________________________________________
 class OTP(models.Model):
     phone_number = models.CharField(max_length=11)
     code = models.CharField(max_length=6)
