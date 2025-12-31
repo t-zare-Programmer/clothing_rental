@@ -30,13 +30,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="products",
-        null=False,
-        blank=True
-    )
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="products",null=False,blank=True)
 
     def clean(self):
         if self.product_type == "rent" and not self.rent_price:
@@ -52,12 +46,9 @@ class Product(models.Model):
         return self.title
 #___________________________________________________________________________________________
 class ProductImage(models.Model):
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        related_name="images"
-    )
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name="images")
     image = models.ImageField(upload_to='products/images/')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="product_images",blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -3,17 +3,18 @@ from .models import Product, ProductImage
 from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
-    ProductCreateSerializer,
+    ProductCreateUpdateSerializer,
     ProductImageSerializer,
 )
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly,IsProductOwnerOrReadOnly
 
 #___________________________________________________________________________________________
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductListSerializer
 
+    # ====================================================================================
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True)
 
@@ -28,11 +29,13 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
 
         return queryset
 
+    # ====================================================================================
     def get_serializer_class(self):
         if self.request.method == "POST":
-            return ProductCreateSerializer
+            return ProductCreateUpdateSerializer
         return ProductListSerializer
 
+    # ====================================================================================
     def get_permissions(self):
         if self.request.method == "POST":
             # فقط کاربران لاگین شده می‌توانند محصول بسازند
@@ -40,44 +43,99 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
         # همه می‌توانند مشاهده کنند
         return [permissions.AllowAny()]
 
+    # ====================================================================================
     def perform_create(self, serializer):
         # ست کردن Owner خودکار هنگام ساخت محصول
         serializer.save(owner=self.request.user)
-
+    #====================================================================================
     @extend_schema(
+        summary="List products",
+        description="Get list of active products with optional filters",
         parameters=[
             OpenApiParameter(
                 name="category",
                 type=OpenApiTypes.INT,
                 location=OpenApiParameter.QUERY,
-                required=False,
                 description="Filter by category id",
             ),
             OpenApiParameter(
                 name="type",
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
-                required=False,
                 description="Filter by product type (rent | sell)",
                 enum=["rent", "sell"],
             ),
-        ]
+        ],
+        responses={200: ProductListSerializer(many=True)},
+    )
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    #====================================================================================
+    @extend_schema(
+        summary="Create product",
+        description="Create a new product (authenticated users only)",
+        request=ProductCreateUpdateSerializer,
+        responses={201: ProductDetailSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+#___________________________________________________________________________________________
+@extend_schema(
+    description="""
+Retrieve, update or delete a product.
+Only the product owner can update or delete the product.
+Other users can only view it.
+"""
+)
+# مشاهده، بروزرسانی و حذف محصول خاص
+class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.filter(is_active=True)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            return ProductCreateUpdateSerializer
+        return ProductDetailSerializer
+
+
+#________________________________________________________________________________________________________
+class ProductImageListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ProductImageSerializer
+
+    # ====================================================================================
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.IsAuthenticated()]
+        # مشاهده فقط برای همه، و ویرایش/حذف فقط برای مالک محصول
+        return [IsProductOwnerOrReadOnly()]
+
+    # ====================================================================================
+    @extend_schema(
+        summary="List product images",
+        description="Get product images with optional filters",
+        parameters=[
+            OpenApiParameter(
+                name="product_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="Filter images by product id",
+            ),
+            OpenApiParameter(
+                name="category_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="Filter images by product category id",
+            ),
+        ],
+        responses={200: ProductImageSerializer(many=True)},
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-#___________________________________________________________________________________________
-# مشاهده، بروزرسانی و حذف محصول خاص
-class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.filter(is_active=True)
-    serializer_class = ProductDetailSerializer
-    permission_classes = [IsOwnerOrReadOnly]
-
-#___________________________________________________________________________________________
-class ProductImageListCreateAPIView(generics.ListCreateAPIView):
-    serializer_class = ProductImageSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
+    # ====================================================================================
     def get_queryset(self):
         queryset = ProductImage.objects.all()
 
@@ -92,3 +150,29 @@ class ProductImageListCreateAPIView(generics.ListCreateAPIView):
             queryset = queryset.filter(product__category_id=category_id)
 
         return queryset
+
+    # ====================================================================================
+    @extend_schema(
+        summary="Upload product image",
+        description="Upload image for a product (only product owner)",
+        request=ProductImageSerializer,
+        responses={201: ProductImageSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+#________________________________________________________________________________________________________
+@extend_schema(
+    description="""
+Retrieve or delete a product image.
+Only the product owner can delete the image.
+Other users can only view it.
+"""
+)
+class ProductImageDetailAPIView(generics.RetrieveDestroyAPIView):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsProductOwnerOrReadOnly
+    ]
