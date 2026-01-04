@@ -1,4 +1,6 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
+from rest_framework.views import APIView
 from .models import Product, ProductImage
 from .serializers import (
     ProductListSerializer,
@@ -9,14 +11,20 @@ from .serializers import (
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from .permissions import IsOwnerOrReadOnly,IsProductOwnerOrReadOnly
+from core.pagination import DefaultPagination
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
 
 #___________________________________________________________________________________________
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductListSerializer
+    pagination_class = DefaultPagination
 
     # ====================================================================================
     def get_queryset(self):
-        queryset = Product.objects.filter(is_active=True)
+        queryset = Product.objects.filter(is_active=True,status=Product.Status.PUBLISHED)
 
         category_id = self.request.query_params.get("category")
         product_type = self.request.query_params.get("type")  # rent | sell
@@ -100,6 +108,10 @@ class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
             return ProductCreateUpdateSerializer
         return ProductDetailSerializer
 
+    # Soft Delete
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
 
 #________________________________________________________________________________________________________
 class ProductImageListCreateAPIView(generics.ListCreateAPIView):
@@ -161,6 +173,9 @@ class ProductImageListCreateAPIView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 #________________________________________________________________________________________________________
 @extend_schema(
     description="""
@@ -176,3 +191,17 @@ class ProductImageDetailAPIView(generics.RetrieveDestroyAPIView):
         permissions.IsAuthenticatedOrReadOnly,
         IsProductOwnerOrReadOnly
     ]
+#________________________________________________________________________________________________________
+class ProductPublishAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk, owner=request.user)
+
+        product.status = Product.Status.PUBLISHED
+        product.save(update_fields=['status'])
+
+        return Response(
+            {"جزییات": "محصول با موفقیت انتشار یافت"},
+            status=status.HTTP_200_OK
+        )

@@ -17,9 +17,11 @@ class ProductListSerializer(serializers.ModelSerializer):
             "product_type",
             "rent_price",
             "sell_price",
+            "cover_image",
         )
 
 #___________________________________________________________________________________________
+MAX_PRODUCT_IMAGES = 5
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
@@ -27,7 +29,22 @@ class ProductImageSerializer(serializers.ModelSerializer):
             "id",
             "image",
             "created_at",
+            "product",
         )
+
+
+    def validate(self, attrs):
+        product = attrs.get("product")
+
+        # تعداد تصاویر فعلی محصول
+        images_count = ProductImage.objects.filter(product=product).count()
+
+        if images_count >= MAX_PRODUCT_IMAGES:
+            raise serializers.ValidationError({
+                "image": f"برای هر محصول حداکثر {MAX_PRODUCT_IMAGES} تصویر مجاز است."
+            })
+
+        return attrs
 
 #___________________________________________________________________________________________
 class ProductDetailSerializer(serializers.ModelSerializer):

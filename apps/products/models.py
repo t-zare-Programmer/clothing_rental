@@ -9,28 +9,22 @@ class Product(models.Model):
         RENT = "rent", "اجاره‌ای"
         SELL = "sell", "فروشی"
 
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        PUBLISHED = 'published', 'Published'
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
-        related_name="products"
-    )
-
-    product_type = models.CharField(
-        max_length=10,
-        choices=ProductType.choices
-    )
-
+    category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name="products")
+    product_type = models.CharField(max_length=10,choices=ProductType.choices)
     rent_price = models.PositiveIntegerField(null=True, blank=True)
     sell_price = models.PositiveIntegerField(null=True, blank=True)
     deposit_price = models.PositiveIntegerField(null=True, blank=True)
-
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="products",null=False,blank=True)
+    status = models.CharField(max_length=20,choices=Status.choices,default=Status.DRAFT)
+    cover_image = models.ImageField(upload_to="products/covers/",null=True,blank=True)
 
     def clean(self):
         if self.product_type == "rent" and not self.rent_price:
