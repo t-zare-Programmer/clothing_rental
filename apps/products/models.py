@@ -10,8 +10,10 @@ class Product(models.Model):
         SELL = "sell", "فروشی"
 
     class Status(models.TextChoices):
-        DRAFT = 'draft', 'Draft'
-        PUBLISHED = 'published', 'Published'
+        DRAFT = "draft", "Draft"
+        PENDING_REVIEW = "pending_review", "Pending Review"
+        PUBLISHED = "published", "Published"
+        REJECTED = "rejected", "Rejected"
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -21,6 +23,9 @@ class Product(models.Model):
     sell_price = models.PositiveIntegerField(null=True, blank=True)
     deposit_price = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_published = models.BooleanField(default=False)  # کاربر
+    is_approved = models.BooleanField(default=False)  # ادمین
+    approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="products",null=False,blank=True)
     status = models.CharField(max_length=20,choices=Status.choices,default=Status.DRAFT)

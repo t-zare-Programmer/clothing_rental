@@ -1,10 +1,13 @@
 from rest_framework import serializers
 from .models import Product, ProductImage
 
-#___________________________________________________________________________________________
+# =========================================================================================
+# Product List (Public)
+# =========================================================================================
 class ProductListSerializer(serializers.ModelSerializer):
     category_title = serializers.CharField(
-        source="category.title", read_only=True
+        source="category.title",
+        read_only=True
     )
 
     class Meta:
@@ -20,8 +23,12 @@ class ProductListSerializer(serializers.ModelSerializer):
             "cover_image",
         )
 
-#___________________________________________________________________________________________
+
+# =========================================================================================
+# Product Images
+# =========================================================================================
 MAX_PRODUCT_IMAGES = 5
+
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
@@ -32,11 +39,9 @@ class ProductImageSerializer(serializers.ModelSerializer):
             "product",
         )
 
-
     def validate(self, attrs):
         product = attrs.get("product")
 
-        # تعداد تصاویر فعلی محصول
         images_count = ProductImage.objects.filter(product=product).count()
 
         if images_count >= MAX_PRODUCT_IMAGES:
@@ -46,10 +51,14 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
         return attrs
 
-#___________________________________________________________________________________________
+
+# =========================================================================================
+# Product Detail (Public)
+# =========================================================================================
 class ProductDetailSerializer(serializers.ModelSerializer):
     category_title = serializers.CharField(
-        source="category.title", read_only=True
+        source="category.title",
+        read_only=True
     )
 
     images = ProductImageSerializer(
@@ -59,13 +68,43 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "description",
+            "product_type",
+            "sell_price",
+            "rent_price",
+            "deposit_price",
+            "cover_image",
+            "category",
+            "category_title",
+            "images",
+        )
 
-#___________________________________________________________________________________________
+
+# =========================================================================================
+# Product Create / Update (User)
+# =========================================================================================
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    ✔ کاربر فقط می‌تواند محصول را بسازد یا ویرایش کند
+    ❌ هیچ دسترسی به approve / owner / approved_at ندارد
+    """
+
     class Meta:
         model = Product
-        fields = "__all__"
+        fields = (
+            "title",
+            "description",
+            "product_type",
+            "sell_price",
+            "rent_price",
+            "deposit_price",
+            "category",
+            "cover_image",
+            "is_published",   # فقط درخواست انتشار
+        )
 
     def validate(self, attrs):
         instance = self.instance
@@ -110,4 +149,31 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def create(self, validated_data):
+        """
+        امنیت اصلی اینجاست
+        """
+        request = self.context["request"]
 
+        validated_data["owner"] = request.user
+        validated_data["is_approved"] = False
+        validated_data["approved_at"] = None
+
+        return super().create(validated_data)
+
+
+# =========================================================================================
+# Product Admin Serializer
+# =========================================================================================
+class ProductAdminSerializer(serializers.ModelSerializer):
+    """
+    فقط برای ادمین
+    """
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        read_only_fields = (
+            "owner",
+            "approved_at",
+        )

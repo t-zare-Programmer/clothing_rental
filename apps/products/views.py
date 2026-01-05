@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
@@ -24,7 +25,7 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
 
     # ====================================================================================
     def get_queryset(self):
-        queryset = Product.objects.filter(is_active=True,status=Product.Status.PUBLISHED)
+        queryset = Product.objects.filter(is_active=True, is_published=True,is_approved=True,status=Product.Status.PUBLISHED)
 
         category_id = self.request.query_params.get("category")
         product_type = self.request.query_params.get("type")  # rent | sell
@@ -107,6 +108,22 @@ class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ["PUT", "PATCH"]:
             return ProductCreateUpdateSerializer
         return ProductDetailSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_authenticated:
+            return Product.objects.filter(
+                Q(is_active=True, is_published=True, is_approved=True)
+                |
+                Q(owner=user)
+            )
+
+        return Product.objects.filter(
+            is_active=True,
+            is_published=True,
+            is_approved=True
+        )
 
     # Soft Delete
     def perform_destroy(self, instance):
@@ -198,8 +215,14 @@ class ProductPublishAPIView(APIView):
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk, owner=request.user)
 
-        product.status = Product.Status.PUBLISHED
-        product.save(update_fields=['status'])
+        product.status = Product.Status.PENDING_REVIEW
+        product.is_published = False
+        product.is_approved = False
+        product.save(update_fields=[
+            'status',
+            'is_published',
+            'is_approved',
+        ])
 
         return Response(
             {"جزییات": "محصول با موفقیت انتشار یافت"},
