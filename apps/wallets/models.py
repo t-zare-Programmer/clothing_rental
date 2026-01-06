@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from decimal import Decimal
 
-
+#_____________________________________________________________________________________________________________
 class Wallet(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -19,22 +19,23 @@ class Wallet(models.Model):
 
     def __str__(self):
         return f"Wallet({self.user})"
-
+#_____________________________________________________________________________________________________________
 class WalletTransaction(models.Model):
-    class TransactionType(models.TextChoices):
-        DEPOSIT = 'deposit', 'Deposit'
-        WITHDRAW = 'withdraw', 'Withdraw'
+    class Type(models.TextChoices):
+        DEPOSIT = "deposit", "Deposit"
+        WITHDRAW = "withdraw", "Withdraw"
 
     wallet = models.ForeignKey(
         Wallet,
         on_delete=models.CASCADE,
-        related_name='transactions'
+        related_name="transactions"
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     transaction_type = models.CharField(
         max_length=10,
-        choices=TransactionType.choices
+        choices=Type.choices
     )
+    description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
