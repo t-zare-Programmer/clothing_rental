@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .models import Wallet, WalletTransaction
+from decimal import Decimal
 #_____________________________________________________________________________________________________________
 User = get_user_model()
 
@@ -12,7 +13,7 @@ def create_wallet_for_user(sender, instance, created, **kwargs):
 #_____________________________________________________________________________________________________________
 @receiver(post_save, sender=Wallet)
 def create_initial_wallet_transaction(sender, instance, created, **kwargs):
-    if created and instance.balance > 0:
+    if created and instance.balance > Decimal("0"):
         WalletTransaction.objects.create(
             wallet=instance,
             amount=instance.balance,

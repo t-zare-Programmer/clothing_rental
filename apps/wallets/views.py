@@ -3,7 +3,7 @@ from rest_framework import generics, permissions, status
 from .models import WalletTransaction,Wallet
 from .serializers import WalletSerializer
 from drf_spectacular.utils import extend_schema
-from .serializers import WalletDepositSerializer,WalletTransactionSerializer
+from .serializers import WalletDepositSerializer,WalletTransactionSerializer,WalletWithdrawSerializer
 from django.db import transaction
 #_____________________________________________________________________________________________________________
 @extend_schema(
@@ -66,4 +66,44 @@ class WalletTransactionListAPIView(generics.ListAPIView):
         return WalletTransaction.objects.filter(
             wallet=self.request.user.wallet
         ).order_by("-created_at")
+#_____________________________________________________________________________________________________________
+@extend_schema(
+    request=WalletWithdrawSerializer,
+    responses={200: WalletSerializer},
+    description="Withdraw amount from authenticated user's wallet"
+)
+class WalletWithdrawAPIView(generics.GenericAPIView):
+    serializer_class = WalletWithdrawSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
+    @transaction.atomic
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        amount = serializer.validated_data["amount"]
+        wallet = request.user.wallet
+
+        # ❗️بررسی موجودی
+        if wallet.balance < amount:
+            return Response(
+                {"detail": "موجودی کیف پول کافی نیست"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # کاهش موجودی
+        wallet.balance -= amount
+        wallet.save(update_fields=["balance"])
+
+        # ثبت تراکنش
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type=WalletTransaction.Type.WITHDRAW,
+            description="Wallet withdraw"
+        )
+
+        return Response(
+            WalletSerializer(wallet).data,
+            status=status.HTTP_200_OK
+        )

@@ -20,3 +20,10 @@ class WalletTransactionSerializer(serializers.ModelSerializer):
 #_____________________________________________________________________________________________________________
 class WalletDepositSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+#_____________________________________________________________________________________________________________
+class WalletWithdrawSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        min_value=1
+    )
