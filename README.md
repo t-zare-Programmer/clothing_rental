@@ -1,22 +1,32 @@
-# Clothing Rental Backend
+# 👗 Clothing Rental Backend
 
-Backend service for a clothing rental mobile application.
+A scalable backend system for a clothing rental mobile application.
 
-## Tech Stack
+## 🚀 Overview
+This project is a backend service designed to handle user authentication, rentals, and core business logic for a clothing rental platform.
+
+## 🧰 Tech Stack
 - Python
 - Django
-- Django REST Framework
+- Django REST Framework (DRF)
 - PostgreSQL
 - JWT Authentication
-- OTP-based Login
+- OTP-based authentication
 
-## Features (Implemented)
-- OTP Authentication (Phone-based)
-- JWT Token Generation
-- Custom User Model
-- PostgreSQL Integration
+## 🔐 Authentication System
+- Phone number OTP login
+- JWT token-based authentication
+- Custom user model implementation
 
-## Setup
+## ⚙️ Features
+- OTP verification system
+- Secure JWT authentication
+- PostgreSQL database integration
+- Modular Django architecture
+- Scalable REST API design
+
+## 📦 Setup Instructions
+
 ```bash
 pip install -r requirements.txt
 python manage.py migrate
