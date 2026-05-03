@@ -222,6 +222,7 @@ class ProductPublishAPIView(APIView):
             'status',
             'is_published',
             'is_approved',
+
         ])
 
         return Response(

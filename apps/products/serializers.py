@@ -5,10 +5,7 @@ from .models import Product, ProductImage
 # Product List (Public)
 # =========================================================================================
 class ProductListSerializer(serializers.ModelSerializer):
-    category_title = serializers.CharField(
-        source="category.title",
-        read_only=True
-    )
+    category_title = serializers.CharField(source="category.title",read_only=True)
 
     class Meta:
         model = Product
@@ -22,8 +19,6 @@ class ProductListSerializer(serializers.ModelSerializer):
             "sell_price",
             "cover_image",
         )
-
-
 # =========================================================================================
 # Product Images
 # =========================================================================================

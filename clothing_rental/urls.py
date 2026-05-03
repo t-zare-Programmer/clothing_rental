@@ -19,8 +19,4 @@ urlpatterns = [
     path('api/wallet/', include('apps.wallets.urls')),
 
 ]
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
+if settings.DEBUG:urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
